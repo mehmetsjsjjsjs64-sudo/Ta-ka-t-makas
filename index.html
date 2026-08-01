@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fotoğraf</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    background:#000;
+    overflow:hidden;
+    touch-action: none;
+}
+
+body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor: none;
+}
+
+#foto{
+    width:100vw;
+    height:100vh;
+    object-fit:contain;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.9) 100%);
+    z-index: 10;
+    animation: pulseVignette 12s infinite alternate;
+}
+
+@keyframes pulseVignette {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+#errorMsg {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ff0044;
+    font-family: monospace;
+    font-size: 14px;
+    background: rgba(0,0,0,0.8);
+    padding: 10px 20px;
+    border: 1px solid #ff0044;
+    z-index: 999;
+    display: none;
+    text-align: center;
+}
+
+/* TITREŞİM ANİMASYONU */
+@keyframes vibrate {
+    0% { transform: translate(0px, 0px) rotate(0deg); }
+    10% { transform: translate(-2px, -2px) rotate(-0.5deg); }
+    20% { transform: translate(2px, -2px) rotate(0.5deg); }
+    30% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+    40% { transform: translate(2px, 2px) rotate(0.5deg); }
+    50% { transform: translate(-2px, -2px) rotate(-0.5deg); }
+    60% { transform: translate(2px, -2px) rotate(0.5deg); }
+    70% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+    80% { transform: translate(2px, 2px) rotate(0.5deg); }
+    90% { transform: translate(-2px, -2px) rotate(-0.5deg); }
+    100% { transform: translate(0px, 0px) rotate(0deg); }
+}
+
+.vibrate {
+    animation: vibrate 0.3s ease-in-out 3;
+}
+</style>
+</head>
+<body>
+
+<img id="foto" src="Kka.jpg" onerror="resimBulunamadi()">
+<div id="errorMsg">⚠ FOTOĞRAF BULUNAMADI!<br>Dosya adı: Kka.jpg</div>
+
+<script>
+// ============================================
+// RESİM BULUNAMADIĞINDA ÇALIŞIR
+// ============================================
+function resimBulunamadi() {
+    const errorDiv = document.getElementById('errorMsg');
+    errorDiv.style.display = 'block';
+    
+    const img = document.getElementById('foto');
+    const dosyaAdi = 'Kka';
+    const uzantilar = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+    let denendi = 0;
+    
+    function deneUzantı(index) {
+        if (index >= uzantilar.length) {
+            errorDiv.innerHTML = '⚠ HİÇBİR RESİM BULUNAMADI!<br>Dosyayı "Kka.jpg" olarak kaydedip tekrar dene.';
+            return;
+        }
+        img.src = dosyaAdi + uzantilar[index];
+        denendi++;
+    }
+    
+    setTimeout(() => deneUzantı(0), 100);
+    
+    img.onerror = function() {
+        if (denendi < uzantilar.length) {
+            deneUzantı(denendi);
+        }
+    };
+}
+
+// ============================================================
+// TELEFON TİTREŞİM FONKSİYONU
+// ============================================================
+function telefonuTitret(sure = 200) {
+    // Navigator vibrate API
+    if (navigator.vibrate) {
+        navigator.vibrate(sure);
+    } else {
+        // Vibrate desteklemiyorsa görsel titreşim yap
+        const foto = document.getElementById('foto');
+        foto.classList.add('vibrate');
+        setTimeout(() => {
+            foto.classList.remove('vibrate');
+        }, 1000);
+    }
+}
+
+// ============================================================
+// KORKUNÇ SES EFEKTLERİ - TİZ + TİTREŞİM
+// ============================================================
+(function() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function startAudio() {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        // Ses başladığında hafif titreşim
+        telefonoTitret(100);
+    }
+    document.addEventListener('click', startAudio);
+    document.addEventListener('touchstart', startAudio);
+    
+    setTimeout(() => {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }, 100);
+    
+    // --- 1. TİZ UĞULTU (50Hz) ---
+    const drone = audioCtx.createOscillator();
+    const droneGain = audioCtx.createGain();
+    drone.type = 'sawtooth';
+    drone.frequency.value = 50;
+    droneGain.gain.value = 0.12;
+    drone.connect(droneGain);
+    droneGain.connect(audioCtx.destination);
+    drone.start();
+    
+    // --- 2. TİZ METAL KAZIMA ---
+    const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.25;
+    }
+    
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+    
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.value = 0.06;
+    
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1200;
+    filter.Q.value = 0.5;
+    
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start();
+    
+    // --- 3. TİZ İNSAN ÇIĞLIĞI + TİTREŞİM ---
+    function playScream() {
+        const now = audioCtx.currentTime;
+        
+        // ÇIĞLIK ANINDA TELEFONU TİTRET
+        telefonuTitret(300);
+        
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc1.type = 'sawtooth';
+        osc2.type = 'square';
+        
+        osc1.frequency.setValueAtTime(600, now);
+        osc1.frequency.exponentialRampToValueAtTime(1800, now + 0.3);
+        osc1.frequency.exponentialRampToValueAtTime(1200, now + 0.8);
+        
+        osc2.frequency.setValueAtTime(500, now);
+        osc2.frequency.exponentialRampToValueAtTime(1600, now + 0.25);
+        osc2.frequency.exponentialRampToValueAtTime(1000, now + 0.7);
+        
+        gain.gain.setValueAtTime(0.01, now);
+        gain.gain.linearRampToValueAtTime(0.12, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+        
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc1.start(now);
+        osc1.stop(now + 0.9);
+        osc2.start(now);
+        osc2.stop(now + 0.9);
+    }
+    
+    function scheduleScream() {
+        const delay = 15000 + Math.random() * 30000;
+        setTimeout(() => {
+            playScream();
+            scheduleScream();
+        }, delay);
+    }
+    scheduleScream();
+    
+    // --- 4. TİZ ÇIĞLIKLAR + TİTREŞİM ---
+    function playRandomSqueal() {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 3000 + Math.random() * 7000;
+        gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+        
+        // Tiz sesle birlikte kısa titreşim
+        telefonuTitret(80);
+    }
+    
+    function scheduleSqueal() {
+        const delay = 5000 + Math.random() * 20000;
+        setTimeout(() => {
+            playRandomSqueal();
+            scheduleSqueal();
+        }, delay);
+    }
+    scheduleSqueal();
+    
+    // --- 5. TİZ FISILTILAR ---
+    function playWhisper() {
+        const now = audioCtx.currentTime;
+        
+        const whisperBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.5, audioCtx.sampleRate);
+        const wData = whisperBuffer.getChannelData(0);
+        for (let i = 0; i < wData.length; i++) {
+            const noise = (Math.random() * 2 - 1) * 0.25;
+            const tone = Math.sin(i / audioCtx.sampleRate * 600) * 0.08;
+            wData[i] = noise + tone;
+        }
+        
+        const whisper = audioCtx.createBufferSource();
+        whisper.buffer = whisperBuffer;
+        
+        const whisperGain = audioCtx.createGain();
+        whisperGain.gain.setValueAtTime(0.01, now);
+        whisperGain.gain.exponentialRampToValueAtTime(0.04, now + 0.1);
+        whisperGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        
+        const whisperFilter = audioCtx.createBiquadFilter();
+        whisperFilter.type = 'bandpass';
+        whisperFilter.frequency.value = 800 + Math.random() * 1000;
+        whisperFilter.Q.value = 0.8;
+        
+        whisper.connect(whisperFilter);
+        whisperFilter.connect(whisperGain);
+        whisperGain.connect(audioCtx.destination);
+        whisper.start();
+        whisper.stop(now + 0.6);
+        
+        // Fısıltı ile hafif titreşim
+        telefonuTitret(50);
+    }
+    
+    function scheduleWhisper() {
+        const delay = 8000 + Math.random() * 17000;
+        setTimeout(() => {
+            playWhisper();
+            scheduleWhisper();
+        }, delay);
+    }
+    scheduleWhisper();
+    
+    // --- 6. TİZ VIZILTI ---
+    const buzz = audioCtx.createOscillator();
+    const buzzGain = audioCtx.createGain();
+    buzz.type = 'sawtooth';
+    buzz.frequency.value = 80;
+    buzzGain.gain.value = 0.035;
+    
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.7;
+    lfoGain.gain.value = 20;
+    lfo.connect(lfoGain);
+    lfoGain.connect(buzz.frequency);
+    
+    buzz.connect(buzzGain);
+    buzzGain.connect(audioCtx.destination);
+    buzz.start();
+    lfo.start();
+    
+    // --- 7. UĞULTUYU MODÜLE ET ---
+    function modulateDrone() {
+        const now = audioCtx.currentTime;
+        drone.frequency.setTargetAtTime(45 + Math.random() * 20, now, 5);
+        droneGain.gain.setTargetAtTime(0.04 + Math.random() * 0.12, now, 5);
+        
+        // Modülasyon sırasında hafif titreşim
+        if (Math.random() > 0.6) {
+            telefonuTitret(30);
+        }
+        
+        setTimeout(modulateDrone, 4000 + Math.random() * 8000);
+    }
+    modulateDrone();
+    
+    // --- 8. RASTGELE TİTREŞİM (SESSİZ, ANİ) ---
+    function randomVibrate() {
+        if (Math.random() > 0.7) {
+            const sure = 100 + Math.random() * 200;
+            telefonuTitret(sure);
+        }
+        setTimeout(randomVibrate, 10000 + Math.random() * 20000);
+    }
+    randomVibrate();
+    
+    console.log('🎃 LUBV V1 — Tiz ses + Titreşim terörü başladı!');
+    console.log('📱 Telefon rastgele titreyecek!');
+})();
+
+// Klavye ile zoom'u engelle
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0')) {
+        e.preventDefault();
+    }
+});
+
+// Touch ile zoom'u engelle
+document.addEventListener('gesturestart', function(e) {
+    e.preventDefault();
+});
+</script>
+</body>
+</html>

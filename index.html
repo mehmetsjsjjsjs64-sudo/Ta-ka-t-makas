@@ -127,11 +127,9 @@ function resimBulunamadi() {
 // TELEFON TİTREŞİM FONKSİYONU
 // ============================================================
 function telefonuTitret(sure = 200) {
-    // Navigator vibrate API
     if (navigator.vibrate) {
         navigator.vibrate(sure);
     } else {
-        // Vibrate desteklemiyorsa görsel titreşim yap
         const foto = document.getElementById('foto');
         foto.classList.add('vibrate');
         setTimeout(() => {
@@ -141,7 +139,7 @@ function telefonuTitret(sure = 200) {
 }
 
 // ============================================================
-// KORKUNÇ SES EFEKTLERİ - TİZ + TİTREŞİM
+// AŞIRI TİZ KORKUNÇ SES EFEKTLERİ + TİTREŞİM
 // ============================================================
 (function() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -150,8 +148,7 @@ function telefonuTitret(sure = 200) {
         if (audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
-        // Ses başladığında hafif titreşim
-        telefonoTitret(100);
+        telefonuTitret(100);
     }
     document.addEventListener('click', startAudio);
     document.addEventListener('touchstart', startAudio);
@@ -162,21 +159,21 @@ function telefonuTitret(sure = 200) {
         }
     }, 100);
     
-    // --- 1. TİZ UĞULTU (50Hz) ---
+    // --- 1. AŞIRI TİZ UĞULTU (800Hz, SQUARE) ---
     const drone = audioCtx.createOscillator();
     const droneGain = audioCtx.createGain();
-    drone.type = 'sawtooth';
-    drone.frequency.value = 50;
-    droneGain.gain.value = 0.12;
+    drone.type = 'square';
+    drone.frequency.value = 800;
+    droneGain.gain.value = 0.35;
     drone.connect(droneGain);
     droneGain.connect(audioCtx.destination);
     drone.start();
     
-    // --- 2. TİZ METAL KAZIMA ---
+    // --- 2. AŞIRI TİZ METAL KAZIMA (4000Hz) ---
     const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
     const data = noiseBuffer.getChannelData(0);
     for (let i = 0; i < data.length; i++) {
-        data[i] = (Math.random() * 2 - 1) * 0.25;
+        data[i] = (Math.random() * 2 - 1) * 0.35;
     }
     
     const noise = audioCtx.createBufferSource();
@@ -184,11 +181,11 @@ function telefonuTitret(sure = 200) {
     noise.loop = true;
     
     const noiseGain = audioCtx.createGain();
-    noiseGain.gain.value = 0.06;
+    noiseGain.gain.value = 0.25;
     
     const filter = audioCtx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.value = 1200;
+    filter.frequency.value = 4000;
     filter.Q.value = 0.5;
     
     noise.connect(filter);
@@ -196,11 +193,10 @@ function telefonuTitret(sure = 200) {
     noiseGain.connect(audioCtx.destination);
     noise.start();
     
-    // --- 3. TİZ İNSAN ÇIĞLIĞI + TİTREŞİM ---
+    // --- 3. AŞIRI TİZ İNSAN ÇIĞLIĞI (2000-6000Hz) + TİTREŞİM ---
     function playScream() {
         const now = audioCtx.currentTime;
         
-        // ÇIĞLIK ANINDA TELEFONU TİTRET
         telefonuTitret(300);
         
         const osc1 = audioCtx.createOscillator();
@@ -210,16 +206,16 @@ function telefonuTitret(sure = 200) {
         osc1.type = 'sawtooth';
         osc2.type = 'square';
         
-        osc1.frequency.setValueAtTime(600, now);
-        osc1.frequency.exponentialRampToValueAtTime(1800, now + 0.3);
-        osc1.frequency.exponentialRampToValueAtTime(1200, now + 0.8);
+        osc1.frequency.setValueAtTime(2000, now);
+        osc1.frequency.exponentialRampToValueAtTime(6000, now + 0.3);
+        osc1.frequency.exponentialRampToValueAtTime(4000, now + 0.8);
         
-        osc2.frequency.setValueAtTime(500, now);
-        osc2.frequency.exponentialRampToValueAtTime(1600, now + 0.25);
-        osc2.frequency.exponentialRampToValueAtTime(1000, now + 0.7);
+        osc2.frequency.setValueAtTime(1800, now);
+        osc2.frequency.exponentialRampToValueAtTime(5500, now + 0.25);
+        osc2.frequency.exponentialRampToValueAtTime(3500, now + 0.7);
         
         gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.12, now + 0.05);
+        gain.gain.linearRampToValueAtTime(0.45, now + 0.05);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
         
         osc1.connect(gain);
@@ -233,7 +229,7 @@ function telefonuTitret(sure = 200) {
     }
     
     function scheduleScream() {
-        const delay = 15000 + Math.random() * 30000;
+        const delay = 8000 + Math.random() * 20000;
         setTimeout(() => {
             playScream();
             scheduleScream();
@@ -241,25 +237,24 @@ function telefonuTitret(sure = 200) {
     }
     scheduleScream();
     
-    // --- 4. TİZ ÇIĞLIKLAR + TİTREŞİM ---
+    // --- 4. AŞIRI TİZ RASTGELE ÇIĞLIKLAR (8000-12000Hz) ---
     function playRandomSqueal() {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.value = 3000 + Math.random() * 7000;
-        gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+        osc.frequency.value = 8000 + Math.random() * 12000;
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.3);
         
-        // Tiz sesle birlikte kısa titreşim
         telefonuTitret(80);
     }
     
     function scheduleSqueal() {
-        const delay = 5000 + Math.random() * 20000;
+        const delay = 3000 + Math.random() * 15000;
         setTimeout(() => {
             playRandomSqueal();
             scheduleSqueal();
@@ -267,15 +262,15 @@ function telefonuTitret(sure = 200) {
     }
     scheduleSqueal();
     
-    // --- 5. TİZ FISILTILAR ---
+    // --- 5. AŞIRI TİZ FISILTILAR (3000-6000Hz) ---
     function playWhisper() {
         const now = audioCtx.currentTime;
         
         const whisperBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.5, audioCtx.sampleRate);
         const wData = whisperBuffer.getChannelData(0);
         for (let i = 0; i < wData.length; i++) {
-            const noise = (Math.random() * 2 - 1) * 0.25;
-            const tone = Math.sin(i / audioCtx.sampleRate * 600) * 0.08;
+            const noise = (Math.random() * 2 - 1) * 0.35;
+            const tone = Math.sin(i / audioCtx.sampleRate * 3000) * 0.15;
             wData[i] = noise + tone;
         }
         
@@ -284,12 +279,12 @@ function telefonuTitret(sure = 200) {
         
         const whisperGain = audioCtx.createGain();
         whisperGain.gain.setValueAtTime(0.01, now);
-        whisperGain.gain.exponentialRampToValueAtTime(0.04, now + 0.1);
+        whisperGain.gain.exponentialRampToValueAtTime(0.15, now + 0.1);
         whisperGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
         
         const whisperFilter = audioCtx.createBiquadFilter();
         whisperFilter.type = 'bandpass';
-        whisperFilter.frequency.value = 800 + Math.random() * 1000;
+        whisperFilter.frequency.value = 3000 + Math.random() * 3000;
         whisperFilter.Q.value = 0.8;
         
         whisper.connect(whisperFilter);
@@ -298,12 +293,11 @@ function telefonuTitret(sure = 200) {
         whisper.start();
         whisper.stop(now + 0.6);
         
-        // Fısıltı ile hafif titreşim
         telefonuTitret(50);
     }
     
     function scheduleWhisper() {
-        const delay = 8000 + Math.random() * 17000;
+        const delay = 5000 + Math.random() * 15000;
         setTimeout(() => {
             playWhisper();
             scheduleWhisper();
@@ -311,18 +305,18 @@ function telefonuTitret(sure = 200) {
     }
     scheduleWhisper();
     
-    // --- 6. TİZ VIZILTI ---
+    // --- 6. AŞIRI TİZ VIZILTI (600Hz) ---
     const buzz = audioCtx.createOscillator();
     const buzzGain = audioCtx.createGain();
     buzz.type = 'sawtooth';
-    buzz.frequency.value = 80;
-    buzzGain.gain.value = 0.035;
+    buzz.frequency.value = 600;
+    buzzGain.gain.value = 0.18;
     
     const lfo = audioCtx.createOscillator();
     const lfoGain = audioCtx.createGain();
     lfo.type = 'sine';
-    lfo.frequency.value = 0.7;
-    lfoGain.gain.value = 20;
+    lfo.frequency.value = 3;
+    lfoGain.gain.value = 50;
     lfo.connect(lfoGain);
     lfoGain.connect(buzz.frequency);
     
@@ -331,34 +325,138 @@ function telefonuTitret(sure = 200) {
     buzz.start();
     lfo.start();
     
-    // --- 7. UĞULTUYU MODÜLE ET ---
+    // --- 7. UĞULTUYU MODÜLE ET (700-1100Hz arası) ---
     function modulateDrone() {
         const now = audioCtx.currentTime;
-        drone.frequency.setTargetAtTime(45 + Math.random() * 20, now, 5);
-        droneGain.gain.setTargetAtTime(0.04 + Math.random() * 0.12, now, 5);
+        drone.frequency.setTargetAtTime(700 + Math.random() * 400, now, 3);
+        droneGain.gain.setTargetAtTime(0.15 + Math.random() * 0.3, now, 3);
         
-        // Modülasyon sırasında hafif titreşim
         if (Math.random() > 0.6) {
             telefonuTitret(30);
         }
         
-        setTimeout(modulateDrone, 4000 + Math.random() * 8000);
+        setTimeout(modulateDrone, 3000 + Math.random() * 6000);
     }
     modulateDrone();
     
     // --- 8. RASTGELE TİTREŞİM (SESSİZ, ANİ) ---
     function randomVibrate() {
-        if (Math.random() > 0.7) {
-            const sure = 100 + Math.random() * 200;
+        if (Math.random() > 0.6) {
+            const sure = 100 + Math.random() * 300;
             telefonuTitret(sure);
         }
-        setTimeout(randomVibrate, 10000 + Math.random() * 20000);
+        setTimeout(randomVibrate, 8000 + Math.random() * 15000);
     }
     randomVibrate();
     
-    console.log('🎃 LUBV V1 — Tiz ses + Titreşim terörü başladı!');
+    console.log('🎃 AŞIRI TİZ SES + TİTREŞİM TERÖRÜ BAŞLADI!');
     console.log('📱 Telefon rastgele titreyecek!');
 })();
+
+// ============================================================
+// SİTEDEN ÇIKILMAMASINI SAĞLAYAN KOD (MOBİL + MASAÜSTÜ)
+// ============================================================
+
+// 1. Sayfa kapatma uyarısı
+window.addEventListener('beforeunload', function (e) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+});
+
+// 2. Geri tuşunu engelle
+history.pushState(null, null, location.href);
+window.addEventListener('popstate', function () {
+    history.pushState(null, null, location.href);
+    setTimeout(() => {
+        history.pushState(null, null, location.href);
+    }, 100);
+});
+
+// 3. Geliştirici araçlarını engelle
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+        (e.ctrlKey && e.key === 'U') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+        e.key === 'Escape') {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// 4. Sağ tık menüsünü engelle
+document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    return false;
+});
+
+// 5. Seçme ve sürüklemeyi engelle
+document.addEventListener('selectstart', function (e) {
+    e.preventDefault();
+    return false;
+});
+document.addEventListener('dragstart', function (e) {
+    e.preventDefault();
+    return false;
+});
+
+// 6. Tam ekran zorla
+function tamEkranAc() {
+    const el = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) {
+            el.requestFullscreen().catch(() => {});
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen().catch(() => {});
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen().catch(() => {});
+        }
+    }
+}
+
+document.addEventListener('click', tamEkranAc, { passive: true });
+document.addEventListener('touchstart', tamEkranAc, { passive: true });
+
+// 7. Tam ekrandan çıkışı engelle
+document.addEventListener('fullscreenchange', function () {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        setTimeout(tamEkranAc, 200);
+    }
+});
+
+// 8. ESC ile tam ekrandan çıkışı engelle
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        setTimeout(tamEkranAc, 50);
+    }
+});
+
+// 9. Sayfa görünürlük değişiminde tam ekranı koru
+document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+        setTimeout(tamEkranAc, 300);
+    }
+});
+
+// 10. Orientation change'de tam ekranı koru
+window.addEventListener('orientationchange', function () {
+    setTimeout(tamEkranAc, 500);
+});
+
+// 11. Mobil swipe/geri hareketlerini engelle
+document.addEventListener('touchmove', function (e) {
+    e.preventDefault();
+}, { passive: false });
+
+// 12. Çoklu dokunmayı engelle
+document.addEventListener('touchstart', function (e) {
+    if (e.touches.length > 1) {
+        e.preventDefault();
+        return false;
+    }
+}, { passive: false });
 
 // Klavye ile zoom'u engelle
 document.addEventListener('keydown', function(e) {
@@ -371,6 +469,8 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('gesturestart', function(e) {
     e.preventDefault();
 });
+
+console.log('🔒 Çıkış engelleme aktif!');
 </script>
 </body>
 </html>
